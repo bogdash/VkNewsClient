@@ -4,6 +4,7 @@ import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
@@ -20,11 +21,15 @@ import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
 import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
 import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.compose.ui.unit.IntOffset
 import androidx.compose.ui.unit.dp
@@ -37,26 +42,19 @@ import com.bogdash.vknewsclient.domain.NavigationItem
 fun MainScreen(
     viewModel: ViewModel
 ) {
-    val feedPost = remember {
-        mutableStateOf(FeedPost())
-    }
-
+    val selectedNavItem by viewModel.selectedNavItem.observeAsState(NavigationItem.Home)
     Scaffold(
         bottomBar = {
             NavigationBar {
-                val selectedItemPosition = remember {
-                    mutableIntStateOf(0)
-                }
-
                 val items = listOf(
                     NavigationItem.Home,
                     NavigationItem.Favourite,
                     NavigationItem.Profile
                 )
-                items.forEachIndexed { index, item ->
+                items.forEach { item ->
                     NavigationBarItem(
-                        selected = selectedItemPosition.intValue == index,
-                        onClick = { selectedItemPosition.intValue = index },
+                        selected = selectedNavItem == item,
+                        onClick = { viewModel.selectNavItem(item) },
                         icon = {
                             Icon(item.icon, contentDescription = null)
                         },
@@ -74,52 +72,26 @@ fun MainScreen(
             }
         }
     ) { paddingValues ->
-        paddingValues.toString()
-        val feedPosts = viewModel.feedPosts.observeAsState(listOf())
-        LazyColumn(
-            contentPadding = PaddingValues(
-                top = paddingValues.calculateTopPadding(),
-                bottom = paddingValues.calculateBottomPadding() + 16.dp,
-                start = 8.dp,
-                end= 8.dp
-            ),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(items = feedPosts.value, key = {it.id}) { feedPost ->
-                val dismissState = rememberSwipeToDismissBoxState(
-                    confirmValueChange = { value ->
-                        val isDismissed = value in setOf(
-                            SwipeToDismissBoxValue.EndToStart
-                        )
-
-                        if (isDismissed) {
-                            viewModel.remove(feedPost)
-                        }
-                        return@rememberSwipeToDismissBoxState isDismissed
-                    }
-                )
-                SwipeToDismissBox(
-                    modifier = Modifier.animateItem(
-                        fadeInSpec = null,
-                        fadeOutSpec = null,
-                        placementSpec = spring(
-                            stiffness = Spring.StiffnessMediumLow,
-                            visibilityThreshold = IntOffset.VisibilityThreshold
-                        )
-                    ),
-                    state = dismissState,
-                    enableDismissFromEndToStart = true,
-                    enableDismissFromStartToEnd = false,
-                    backgroundContent = {}
-                ) {
-                    PostCard(
-                        feedPost = feedPost,
-                        onStatisticsItemClickListener = { statisticItem ->
-                            viewModel.updateCount(feedPost, statisticItem)
-                        }
-                    )
-                }
-            }
+        when(selectedNavItem) {
+            NavigationItem.Favourite -> TextCounter(modifier = Modifier.padding(paddingValues), name = "Favorite")
+            NavigationItem.Home -> HomeScreen(
+                paddingValues = paddingValues,
+                viewModel = viewModel
+            )
+            NavigationItem.Profile -> TextCounter(modifier = Modifier.padding(paddingValues), name = "Profile")
         }
     }
+}
+
+@Composable
+private fun TextCounter(
+    modifier: Modifier = Modifier,
+    name: String
+) {
+    var count by remember { mutableIntStateOf(0) }
+    Text(
+        modifier = modifier.clickable { count++ },
+        text = "$name Count: $count",
+        color = Color.Black
+    )
 }
