@@ -7,12 +7,19 @@ import com.bogdash.vknewsclient.domain.FeedPost
 import com.bogdash.vknewsclient.domain.StatisticItem
 
 class ViewModel: ViewModel() {
-    private val _feedPost = MutableLiveData(FeedPost())
-    val feedPost: LiveData<FeedPost> = _feedPost
+    private val sourceList = mutableListOf<FeedPost>().apply {
+        repeat(10) {
+            add(FeedPost(id = it))
+        }
+    }
 
-    fun updateCount(item: StatisticItem) {
+    private val _feedPosts = MutableLiveData<List<FeedPost>>(sourceList)
+    val feedPosts: LiveData<List<FeedPost>> = _feedPosts
+
+    fun updateCount(feedPost: FeedPost, item: StatisticItem) {
+        val oldPosts = feedPosts.value?.toMutableList() ?: mutableListOf()
         // TODO: look at the type
-        val oldStatistics = feedPost.value?.statistics ?: throw IllegalStateException("error in updateCount fun")
+        val oldStatistics = feedPost.statistics
         val newStatistics = oldStatistics.toMutableList().apply {
             replaceAll { oldItem ->
                 if (oldItem.type == item.type) {
@@ -22,6 +29,22 @@ class ViewModel: ViewModel() {
                 }
             }
         }
-        _feedPost.value = feedPost.value?.copy(statistics = newStatistics)
+        val newFeedPost = feedPost.copy(statistics = newStatistics)
+
+        _feedPosts.value = oldPosts.apply {
+            replaceAll {
+                if (it.id == newFeedPost.id) {
+                    newFeedPost
+                } else {
+                    it
+                }
+            }
+        }
+    }
+
+    fun remove(feedPost: FeedPost) {
+        val oldPosts = feedPosts.value?.toMutableList() ?: mutableListOf()
+        oldPosts.remove(feedPost)
+        _feedPosts.value = oldPosts
     }
 }

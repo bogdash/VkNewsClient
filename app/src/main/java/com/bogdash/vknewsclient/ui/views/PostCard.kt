@@ -44,7 +44,10 @@ fun PostCard(
         ) {
             PostHeader(feedPost = feedPost)
             Spacer(modifier = Modifier.height(8.dp))
-            Text(text = feedPost.contentText)
+            Text(
+                text = feedPost.contentText,
+                color = MaterialTheme.colorScheme.onPrimary
+            )
             Spacer(modifier = Modifier.height(8.dp))
             Image(
                 modifier = Modifier
