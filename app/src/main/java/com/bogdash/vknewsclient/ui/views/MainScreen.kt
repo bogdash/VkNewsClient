@@ -1,51 +1,41 @@
 package com.bogdash.vknewsclient.ui.views
 
-import androidx.compose.animation.core.Spring
-import androidx.compose.animation.core.VisibilityThreshold
-import androidx.compose.animation.core.spring
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.clickable
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.lazy.LazyColumn
-import androidx.compose.foundation.lazy.items
 import androidx.compose.material3.Icon
 import androidx.compose.material3.MaterialTheme
 import androidx.compose.material3.NavigationBar
 import androidx.compose.material3.NavigationBarItem
 import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
-import androidx.compose.material3.SwipeToDismissBox
-import androidx.compose.material3.SwipeToDismissBoxValue
 import androidx.compose.material3.Text
-import androidx.compose.material3.rememberSwipeToDismissBoxState
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
-import androidx.compose.runtime.livedata.observeAsState
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
-import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
-import androidx.compose.ui.unit.IntOffset
-import androidx.compose.ui.unit.dp
+import androidx.navigation.compose.currentBackStackEntryAsState
+import androidx.navigation.compose.rememberNavController
 import com.bogdash.vknewsclient.ViewModel
-import com.bogdash.vknewsclient.domain.FeedPost
 import com.bogdash.vknewsclient.domain.NavigationItem
+import com.bogdash.vknewsclient.navigation.AppNavGraph
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun MainScreen(
     viewModel: ViewModel
 ) {
-    val selectedNavItem by viewModel.selectedNavItem.observeAsState(NavigationItem.Home)
+    val navHostController = rememberNavController()
     Scaffold(
         bottomBar = {
             NavigationBar {
+                val navBackStackEntry by navHostController.currentBackStackEntryAsState()
+                val currentRoute = navBackStackEntry?.destination?.route
+
                 val items = listOf(
                     NavigationItem.Home,
                     NavigationItem.Favourite,
@@ -53,8 +43,8 @@ fun MainScreen(
                 )
                 items.forEach { item ->
                     NavigationBarItem(
-                        selected = selectedNavItem == item,
-                        onClick = { viewModel.selectNavItem(item) },
+                        selected = currentRoute == item.screen.route,
+                        onClick = { navHostController.navigate(item.screen.route) },
                         icon = {
                             Icon(item.icon, contentDescription = null)
                         },
@@ -72,14 +62,21 @@ fun MainScreen(
             }
         }
     ) { paddingValues ->
-        when(selectedNavItem) {
-            NavigationItem.Favourite -> TextCounter(modifier = Modifier.padding(paddingValues), name = "Favorite")
-            NavigationItem.Home -> HomeScreen(
-                paddingValues = paddingValues,
-                viewModel = viewModel
-            )
-            NavigationItem.Profile -> TextCounter(modifier = Modifier.padding(paddingValues), name = "Profile")
-        }
+        AppNavGraph(
+            navHostController = navHostController,
+            homeScreenContent = {
+                HomeScreen(
+                    paddingValues = paddingValues,
+                    viewModel = viewModel
+                )
+            },
+            favoriteScreenContent = {
+                TextCounter(modifier = Modifier.padding(paddingValues), name = "Favorite")
+            },
+            profileScreenContent = {
+                TextCounter(modifier = Modifier.padding(paddingValues), name = "Profile")
+            }
+        )
     }
 }
 
