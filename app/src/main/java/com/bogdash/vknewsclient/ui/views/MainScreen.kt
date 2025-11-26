@@ -13,7 +13,7 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
-import androidx.compose.runtime.remember
+import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
@@ -23,6 +23,7 @@ import androidx.navigation.compose.rememberNavController
 import com.bogdash.vknewsclient.ViewModel
 import com.bogdash.vknewsclient.domain.NavigationItem
 import com.bogdash.vknewsclient.navigation.AppNavGraph
+import com.bogdash.vknewsclient.navigation.Screen
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
@@ -44,7 +45,15 @@ fun MainScreen(
                 items.forEach { item ->
                     NavigationBarItem(
                         selected = currentRoute == item.screen.route,
-                        onClick = { navHostController.navigate(item.screen.route) },
+                        onClick = {
+                            navHostController.navigate(item.screen.route) {
+                                popUpTo(Screen.NewsFeed.route) {
+                                    saveState = true
+                                }
+                                launchSingleTop = true
+                                restoreState = true
+                            }
+                        },
                         icon = {
                             Icon(item.icon, contentDescription = null)
                         },
@@ -85,7 +94,7 @@ private fun TextCounter(
     modifier: Modifier = Modifier,
     name: String
 ) {
-    var count by remember { mutableIntStateOf(0) }
+    var count by rememberSaveable { mutableIntStateOf(0) }
     Text(
         modifier = modifier.clickable { count++ },
         text = "$name Count: $count",
