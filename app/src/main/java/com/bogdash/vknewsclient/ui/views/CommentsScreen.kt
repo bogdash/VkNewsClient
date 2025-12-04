@@ -1,4 +1,4 @@
-package com.bogdash.vknewsclient.ui
+package com.bogdash.vknewsclient.ui.views
 
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.layout.Column
@@ -60,7 +60,7 @@ fun CommentsScreen(
                 top = 16.dp,
                 start = 8.dp,
                 end = 8.dp,
-                bottom = 72.dp
+                bottom = paddingValues.calculateBottomPadding() + 16.dp
             )
         ) {
             items(
