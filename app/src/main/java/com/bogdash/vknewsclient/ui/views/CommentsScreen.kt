@@ -33,7 +33,8 @@ import com.bogdash.vknewsclient.domain.PostComment
 @Composable
 fun CommentsScreen(
     feedPost: FeedPost,
-    comments: List<PostComment>
+    comments: List<PostComment>,
+    onBackPressed: () -> Unit
 ) {
     Scaffold(
         topBar = {
@@ -43,7 +44,9 @@ fun CommentsScreen(
                 },
                 navigationIcon = {
                     IconButton(
-                        onClick = {}
+                        onClick = {
+                            onBackPressed()
+                        }
                     ) {
                         Icon(
                             imageVector = Icons.AutoMirrored.Filled.ArrowBack,

@@ -1,5 +1,6 @@
 package com.bogdash.vknewsclient.ui.views
 
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.core.Spring
 import androidx.compose.animation.core.VisibilityThreshold
 import androidx.compose.animation.core.spring
@@ -39,8 +40,14 @@ fun HomeScreen(
         is HomeScreenState.Comments -> {
             CommentsScreen(
                 feedPost = currentState.feedPost,
-                comments = currentState.comments
+                comments = currentState.comments,
+                onBackPressed = {
+                    viewModel.closeComments()
+                }
             )
+            BackHandler {
+                viewModel.closeComments()
+            }
         }
 
         HomeScreenState.Initial -> Unit
@@ -91,7 +98,16 @@ private fun FeedPosts(
             ) {
                 PostCard(
                     feedPost = feedPost,
-                    onStatisticsItemClickListener = { statisticItem ->
+                    onViewsClickListener = { statisticItem ->
+                        viewModel.updateCount(feedPost, statisticItem)
+                    },
+                    onShareClickListener = { statisticItem ->
+                        viewModel.updateCount(feedPost, statisticItem)
+                    },
+                    onCommentClickListener = {
+                        viewModel.showComments(feedPost)
+                    },
+                    onLikeClickListener = { statisticItem ->
                         viewModel.updateCount(feedPost, statisticItem)
                     }
                 )
