@@ -11,8 +11,10 @@ import androidx.compose.material3.NavigationBarItemDefaults
 import androidx.compose.material3.Scaffold
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.MutableState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableIntStateOf
+import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
 import androidx.compose.runtime.saveable.rememberSaveable
 import androidx.compose.runtime.setValue
@@ -20,20 +22,19 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.res.stringResource
 import androidx.navigation.compose.currentBackStackEntryAsState
-import androidx.navigation.compose.rememberNavController
-import com.bogdash.vknewsclient.ViewModel
+import com.bogdash.vknewsclient.domain.FeedPost
 import com.bogdash.vknewsclient.domain.NavigationItem
 import com.bogdash.vknewsclient.navigation.AppNavGraph
-import com.bogdash.vknewsclient.navigation.NavigationState
-import com.bogdash.vknewsclient.navigation.Screen
 import com.bogdash.vknewsclient.navigation.rememberNavigationState
 
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
-fun MainScreen(
-    viewModel: ViewModel
-) {
+fun MainScreen() {
     val navigationState = rememberNavigationState()
+
+    val commentsToPost: MutableState<FeedPost?> = remember {
+        mutableStateOf(null)
+    }
 
     Scaffold(
         bottomBar = {
@@ -70,10 +71,19 @@ fun MainScreen(
         AppNavGraph(
             navHostController = navigationState.navHostController,
             homeScreenContent = {
-                HomeScreen(
-                    paddingValues = paddingValues,
-                    viewModel = viewModel
-                )
+                if (commentsToPost.value == null) {
+                    HomeScreen(
+                        paddingValues = paddingValues,
+                        onCommentClickListener = {
+                            commentsToPost.value = it
+                        }
+                    )
+                } else {
+                    CommentsScreen {
+                        commentsToPost.value = null
+                    }
+                }
+
             },
             favoriteScreenContent = {
                 TextCounter(modifier = Modifier.padding(paddingValues), name = "Favorite")
