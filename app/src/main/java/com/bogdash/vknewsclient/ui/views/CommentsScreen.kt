@@ -72,7 +72,7 @@ fun CommentsScreen(
                     top = 16.dp,
                     start = 8.dp,
                     end = 8.dp,
-                    bottom = paddingValues.calculateBottomPadding() + 16.dp
+                    bottom = 80.dp
                 )
             ) {
                 items(
